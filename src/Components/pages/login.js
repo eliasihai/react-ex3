@@ -78,16 +78,16 @@ const Login = ({ users }) => {
               navigate("/Profile", {
                 state: { fromLogin: true, userData: user, allUsers: users },
               });
-            } 
+            }
             // If user not exist will show a alert under password
-            else if(!userExists(values.email, values.password)){
-            userExists(values.email, values.password)
-              ? setIsLoggedIn(true)
-              : setIsLoggedIn(false);
+            else if (!userExists(values.email, values.password)) {
+              userExists(values.email, values.password)
+                ? setIsLoggedIn(true)
+                : setIsLoggedIn(false);
             }
           } else {
             // If session storage not empty setShow will make a pop up
-            setShow(true);
+            if (userExists(values.email, values.password)) setShow(true);
           }
         }}
       >

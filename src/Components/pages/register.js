@@ -16,7 +16,7 @@ const Register = ({ users }) => {
   const [filteredCities, setFilteredCities] = useState([]);
   const [selectedCity, setSelectedCity] = useState("");
   const [optionSelected, setOptionSelected] = useState(false);
-  const [isEmailExists, setIsEmailExists] = useState(false);
+  const [isEmailExists, setIsEmailExists] = useState(true);
   const [show, setShow] = useState(false);
 
   // 18 years old
@@ -90,7 +90,7 @@ const Register = ({ users }) => {
     });
   }
 
-  // Check if email exist. 
+  // Check if email exist.
   function emailExists(data, email) {
     return data.some(function (el) {
       return el.email === email;
@@ -144,20 +144,25 @@ const Register = ({ users }) => {
       .string()
       .matches(/^[א-ת\s]*$/, "ניתן רק אותיות בעברית")
       .required("אנא בחר עיר"),
+    houseNumber: yup
+      .string()
+      .matches(/^[0-9]*$/, "אנא הקש רק מספרים")
+      .required("מספר בית הוא שדה חובה"),
   });
   return (
     <div className="container w-50">
       <Formik
         validationSchema={schema}
         initialValues={{
-          user: "",
-          password: "",
-          confirmPassword: "",
-          email: "",
+          user: "fdsfsdf",
+          password: "Aa123123!",
+          confirmPassword: "Aa123123!",
+          email: "elias@gmail.com",
           file: null,
           birthDate: "",
           city: "",
-          street: "",
+          street: "התות",
+          houseNumber: "",
         }}
         onSubmit={async (values, actions) => {
           try {
@@ -175,6 +180,7 @@ const Register = ({ users }) => {
             }
 
             // If email not exist the user can be register
+            console.log(dataFromLocalStorage);
             if (!emailExists(dataFromLocalStorage, values.email)) {
               setIsEmailExists(true);
               const updatedUsers = [...dataFromLocalStorage, values];
@@ -353,10 +359,20 @@ const Register = ({ users }) => {
                 required
               />
               <formik.ErrorMessage name="street" />
-              {/* <Form.Control.Feedback>Looks good!</Form.Control.Feedback> */}
-              {/* <Form.Control.Feedback type="invalid" tooltip>
-                {errors.user}
-              </Form.Control.Feedback> */}
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="houseNumberInp">
+              <Form.Label>מספר בית</Form.Label>
+              <Form.Control
+                placeholder="מספר בית"
+                type="text"
+                name="houseNumber"
+                value={values.houseNumber}
+                onChange={handleChange}
+                isValid={touched.houseNumber && !errors.houseNumber}
+                isInvalid={!!errors.houseNumber}
+                required
+              />
+              <formik.ErrorMessage name="houseNumber" />
             </Form.Group>
             <div className="d-flex justify-content-center">
               <Button type="submit">הרשם</Button>

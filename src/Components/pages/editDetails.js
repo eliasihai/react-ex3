@@ -120,6 +120,9 @@ function EditDetails() {
       .string()
       .matches(/^[א-ת\s]*$/, "ניתן רק אותיות בעברית")
       .required("אנא בחר עיר"),
+      houseNumber: yup.string()
+      .matches(/^[0-9]*$/, "אנא הקש רק מספרים")
+      .required("מספר בית הוא שדה חובה"),
   });
   return (
     <div className="container w-50">
@@ -134,6 +137,7 @@ function EditDetails() {
           birthDate: userData.birthDate,
           city: userData.city,
           street: userData.street,
+          houseNumber: userData.houseNumber,
         }}
         onSubmit={async (values, actions) => {
           // onSubmit function that update the user data
@@ -302,6 +306,20 @@ function EditDetails() {
                 required
               />
               <formik.ErrorMessage name="street" />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="houseNumberInp">
+              <Form.Label>מספר בית</Form.Label>
+              <Form.Control
+                placeholder="מספר בית"
+                type="number"
+                name="houseNumber"
+                value={values.houseNumber}
+                onChange={handleChange}
+                isValid={touched.houseNumber && !errors.houseNumber}
+                isInvalid={!!errors.houseNumber}
+                required
+              />
+              <formik.ErrorMessage name="houseNumber" />
             </Form.Group>
             <div className="d-flex justify-content-center">
               <Button type="submit">ערוך משתמש</Button>
