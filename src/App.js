@@ -2,11 +2,14 @@ import "./App.css";
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import NavBar from "./Components/navbar";
-import routes from "./Components/routes";
+// import routes from "./Components/routes";
 import Login from "./Components/pages/login";
 import Register from "./Components/pages/register";
+import EditDetails from "./Components/pages/editDetails";
 import { useState, useEffect } from "react";
-
+import RoutesComponent from "./Components/routes";
+import Profile from "./Components/pages/profile";
+import Admin from "./Components/pages/admin";
 const LOCAL_STORAGE_KEY = "users";
 
 const retrieveUsers = () => {
@@ -23,9 +26,6 @@ const App = () => {
   const loadUsers = () => {
     if (!retrieveUsers())
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(users));
-    // const storedUsers = localStorage.getItem("users");
-    // console.log(storedUsers);
-    // if (storedUsers) setUsers(JSON.parse(storedUsers));
     console.log(users);
   };
 
@@ -37,9 +37,12 @@ const App = () => {
       <NavBar />
       <div className="container mt-4" dir="rtl">
         <Routes>
-          {routes.map((route, index) => (
-            <Route key={index} path={route.path} element={route.component} />
-          ))}
+          <Route path="/" />
+          <Route path="/login" element={<Login users={users} />} />
+          <Route path="/register" element={<Register users={users} />} />
+          <Route path="/editDetails" element={<EditDetails />} /> 
+          <Route path="/profile" element={<Profile users={users}/>} /> 
+          <Route path="/admin" element={<Admin users={users}/>} /> 
         </Routes>
       </div>
     </Router>
@@ -47,15 +50,3 @@ const App = () => {
 };
 
 export default App;
-// <Router>
-// <div className="App">
-{
-  /* <NavBar />
-      <Routes>
-        <Route path="/"/>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-      </Routes> */
-}
-// </div>
-// </Router>

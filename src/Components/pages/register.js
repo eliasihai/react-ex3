@@ -1,57 +1,59 @@
 import { useEffect, useState } from "react";
 import Form from "react-bootstrap/Form";
-import InputGroup from "react-bootstrap/InputGroup";
-import Button from "react-bootstrap/Button";
+import { Modal, Button } from "react-bootstrap";
 import * as formik from "formik";
 import * as yup from "yup";
-
+import { useNavigate } from "react-router-dom";
 // Import Israel cities
 import IsraelCities from "../../Data/Cities";
 
-const Register = () => {
+const Register = ({ users }) => {
+  const navigate = useNavigate();
   const { Formik } = formik;
+  // Declaretion states
   const [validated, setValidated] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredCities, setFilteredCities] = useState([]);
   const [selectedCity, setSelectedCity] = useState("");
   const [optionSelected, setOptionSelected] = useState(false);
+  const [isEmailExists, setIsEmailExists] = useState(false);
+  const [show, setShow] = useState(false);
 
-  console.log(localStorage);
+  // 18 years old
+  const today = new Date();
+  const eighteenYearsAgo = new Date(
+    today.getFullYear() - 18,
+    today.getMonth(),
+    today.getDate()
+  );
+
+  const handleClose = () => setShow(false);
+  const handleNavigate = () => {
+    navigate("/Login", {
+      state: { allUsers: users },
+    });
+    handleClose(); // Close the modal after navigation
+  };
+  // When typing the city options will change
   const handleInputChange = (event) => {
     setOptionSelected(false);
     filterCities(event.target.value);
     setSearchTerm(event.target.value);
   };
-
+  // Filter for city input
   const filterCities = (searchTerm) => {
     const filtered = IsraelCities.filter((city) =>
       city.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredCities(filtered);
   };
-
+  // Get the city option that selected
   const handleOptionSelect = (option) => {
     setOptionSelected(true);
     setSearchTerm("");
     setFilteredCities(IsraelCities.filter((item) => item.name !== option.name));
   };
-
-  const handleCityClick = (cityName) => {
-    setSelectedCity(cityName);
-    console.log(selectedCity);
-    // setSearchTerm(cityName); // Set the input value to the selected city name
-    // filterCities(cityName); // Filter cities based on the selected city name
-  };
-  // const handleFileRead = (file) => {
-  //   return new Promise((resolve, reject) => {
-  //     const reader = new FileReader();
-  //     reader.onload = () => {
-  //       resolve(reader.result);
-  //     };
-  //     reader.onerror = reject;
-  //     reader.readAsDataURL(file);
-  //   });
-  // };
+  // Resize image size to push it to local storage
   function resizeAndStoreImage(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -87,7 +89,14 @@ const Register = () => {
       reader.readAsDataURL(file);
     });
   }
-  // const formik = useFormik({});
+
+  // Check if email exist. 
+  function emailExists(data, email) {
+    return data.some(function (el) {
+      return el.email === email;
+    });
+  }
+
   const schema = yup.object().shape({
     user: yup
       .string()
@@ -126,7 +135,10 @@ const Register = () => {
         "סוג הקובץ אינו נתמך. סוגי הקבצים שנתמכים הם jpg/jpeg",
         (value) => value && ["image/jpeg", "image/jpg"].includes(value.type)
       ),
-    birthDate: yup.date().required("אנא בחר תאריך לידה").max(new Date()),
+    birthDate: yup
+      .date()
+      .required("אנא בחר תאריך לידה")
+      .max(eighteenYearsAgo, "הינך חייב להיות בן 18 ומעלה"),
     city: yup.string().required("אנא בחר עיר"),
     street: yup
       .string()
@@ -138,79 +150,42 @@ const Register = () => {
       <Formik
         validationSchema={schema}
         initialValues={{
-          user: "userr",
-          password: "Aa123123!",
-          confirmPassword: "Aa123123!",
-          email: "elias@gmail.com",
+          user: "",
+          password: "",
+          confirmPassword: "",
+          email: "",
           file: null,
           birthDate: "",
           city: "",
-          street: "תות",
+          street: "",
         }}
         onSubmit={async (values, actions) => {
-          console.log(values);
-          console.log(actions);
           try {
+            // image data after resize
             const imageDataUrl = await resizeAndStoreImage(values.file);
             values.file = imageDataUrl;
-            var allObjects = [];
+            // Get data from local storage
+            const dataFromLocalStorage =
+              JSON.parse(localStorage.getItem("users")) || [];
+            if (
+              Array.isArray(dataFromLocalStorage) &&
+              dataFromLocalStorage.length === 0
+            ) {
+              localStorage.clear();
+            }
 
-            // if (localStorage.length > 0) {
-              // Iterate through all keys in local storage
-              const dataFromLocalStorage =
-                JSON.parse(localStorage.getItem("users")) || [];
-              if (
-                Array.isArray(dataFromLocalStorage) &&
-                dataFromLocalStorage.length === 0
-              )
-                localStorage.clear();
-
-                const updatedUsers = [...dataFromLocalStorage, values];
-                // setUsers(updatedUsers);
-                localStorage.setItem("users", JSON.stringify(updatedUsers));
-              // for (var i = 0; i < localStorage.length; i++) {
-              //   var key = localStorage.key(i);
-              //   var value = localStorage.getItem(key);
-
-              //   // Parse the value to an object and add it to the array
-              //   var parsedValue = JSON.parse(value);
-              //   allObjects.push(parsedValue);
-              // }
-              // localStorage.clear();
-              // allObjects.push(values);
-              // let setObj = JSON.stringify(allObjects);
-              // localStorage.setItem("users", setObj);
-            // } else {
-            //   let setObj = JSON.stringify(values);
-            //   localStorage.setItem("users", setObj);
-            // }
-            // console.log(setObj);
-            console.log(JSON.stringify(localStorage.getItem("users")));
-            // const storedImage = localStorage.getItem("myImage");
-            // if (storedImage !== imageDataUrl) {
-            //   localStorage.setItem("myImage", imageDataUrl);
-            //   console.log("Image stored successfully.");
-            // } else {
-            //   console.log("The image is already stored.");
-            // }
+            // If email not exist the user can be register
+            if (!emailExists(dataFromLocalStorage, values.email)) {
+              setIsEmailExists(true);
+              const updatedUsers = [...dataFromLocalStorage, values];
+              setShow(true);
+              localStorage.setItem("users", JSON.stringify(updatedUsers));
+            } else {
+              setIsEmailExists(false);
+            }
           } catch (error) {
             console.error("Failed to store image:", error);
           }
-          // Convert image file to Base64 string
-          // const reader = new FileReader();
-          // reader.onload = (event) => {
-          //   console.log(event);
-          //   values.file = event.target.result;
-          //   console.log(values.file);
-          //   let setObj = JSON.stringify(values);
-          //   localStorage.setItem("user", setObj);
-          //   // localStorage.setItem("myImage", event.target.result);
-          // };
-          // console.log(values.file);
-          // reader.readAsDataURL(values.file);
-          // let setObj = JSON.stringify(values);
-          // console.log(setObj);
-          // localStorage.setItem("user1", setObj);
         }}
       >
         {({
@@ -282,6 +257,11 @@ const Register = () => {
                 required
               />
               <formik.ErrorMessage name="email" />
+              {!isEmailExists && (
+                <div className="error" style={{ color: "red" }}>
+                  כתובת המייל כבר קיימת במערכת
+                </div>
+              )}
             </Form.Group>
             <Form.Group className="mb-3" controlId="formFile">
               <Form.Label>תמונה</Form.Label>
@@ -384,6 +364,19 @@ const Register = () => {
           </Form>
         )}
       </Formik>
+      <Modal show={show} onHide={handleClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>ההרשמה בוצעה בהצלחה</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>בעת לחיצה על כפתור "סיום" תועבר לדף ההתחברות</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={handleNavigate}>
+            סיום
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
