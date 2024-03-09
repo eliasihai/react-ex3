@@ -154,14 +154,14 @@ const Register = ({ users }) => {
       <Formik
         validationSchema={schema}
         initialValues={{
-          user: "fdsfsdf",
-          password: "Aa123123!",
-          confirmPassword: "Aa123123!",
-          email: "elias@gmail.com",
+          user: "",
+          password: "",
+          confirmPassword: "",
+          email: "",
           file: null,
           birthDate: "",
           city: "",
-          street: "התות",
+          street: "",
           houseNumber: "",
         }}
         onSubmit={async (values, actions) => {
